@@ -11,25 +11,25 @@ import {MockERC20Vote} from "../../utils/MockERC20Vote.sol";
 import {MockERC20} from "../../utils/MockERC20.sol";
 
 // Core contracts
-import {QVRevolutionVotingPower} from "../../../contracts/strategies/_poc/qv-revolution-governance/QVRevolutionVotingPower.sol";
+import {QVSnapshotRevolutionVotingPower} from "../../../contracts/strategies/_poc/qv-revolution-governance/QVSnapshotRevolutionVotingPower.sol";
 import {IRevolutionVotingPower} from "../../../contracts/strategies/_poc/qv-revolution-governance/interfaces/IRevolutionVotingPower.sol";
 
-contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
+contract QVSnapshotRevolutionVotingPowerTest is QVBaseStrategyTest {
     IRevolutionVotingPower public votingPower;
-    uint256 public timestamp;
+    uint256 public snapshotBlock;
 
     function setUp() public override {
         votingPower = IRevolutionVotingPower(address(new MockERC20Vote()));
-        timestamp = block.timestamp;
+        snapshotBlock = block.number;
         super.setUp();
     }
 
     function _createStrategy() internal override returns (address payable) {
-        return payable(address(new QVRevolutionVotingPower(address(allo()), "MockStrategy")));
+        return payable(address(new QVSnapshotRevolutionVotingPower(address(allo()), "MockStrategy")));
     }
 
-    function qvGovStrategy() internal view returns (QVRevolutionVotingPower) {
-        return (QVRevolutionVotingPower(_strategy));
+    function qvGovStrategy() internal view returns (QVSnapshotRevolutionVotingPower) {
+        return (QVSnapshotRevolutionVotingPower(_strategy));
     }
 
     function _initialize() internal override {
@@ -42,9 +42,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
             poolProfile_id(),
             address(_strategy),
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -72,12 +72,12 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         vm.expectRevert(ALREADY_INITIALIZED.selector);
 
         vm.startPrank(address(allo()));
-        QVRevolutionVotingPower(_strategy).initialize(
+        QVSnapshotRevolutionVotingPower(_strategy).initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -94,11 +94,11 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
 
     function test_initilize_QVGovernance() public {
         assertEq(address(votingPower), address(qvGovStrategy().votingPower()));
-        assertEq(timestamp, qvGovStrategy().timestamp());
+        assertEq(snapshotBlock, qvGovStrategy().snapshotBlock());
     }
 
     function testRevert_initialize_noVotingPower() public {
-        QVRevolutionVotingPower strategy = new QVRevolutionVotingPower(address(allo()), "MockStrategy");
+        QVSnapshotRevolutionVotingPower strategy = new QVSnapshotRevolutionVotingPower(address(allo()), "MockStrategy");
         MockERC20 noVotingPower = new MockERC20();
         // when no valid governance token is passes
 
@@ -107,9 +107,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         strategy.initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(noVotingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -125,7 +125,7 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
     }
 
     function testRevert_initialize_INVALID() public override {
-        QVRevolutionVotingPower strategy = new QVRevolutionVotingPower(address(allo()), "MockStrategy");
+        QVSnapshotRevolutionVotingPower strategy = new QVSnapshotRevolutionVotingPower(address(allo()), "MockStrategy");
 
         // when registrationStartTime is in the past
         vm.expectRevert(INVALID.selector);
@@ -133,9 +133,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         strategy.initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -155,9 +155,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         strategy.initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -178,9 +178,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         strategy.initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,
@@ -200,9 +200,9 @@ contract QVRevolutionVotingPowerTest is QVBaseStrategyTest {
         strategy.initialize(
             poolId,
             abi.encode(
-                QVRevolutionVotingPower.InitializeParamsGov(
+                QVSnapshotRevolutionVotingPower.InitializeParamsGov(
                     address(votingPower),
-                    timestamp,
+                    snapshotBlock,
                     QVBaseStrategy.InitializeParams(
                         registryGating,
                         metadataRequired,

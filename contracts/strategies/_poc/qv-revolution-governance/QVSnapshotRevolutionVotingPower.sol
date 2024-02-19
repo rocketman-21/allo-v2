@@ -21,19 +21,19 @@ import {IRevolutionVotingPower} from "./interfaces/IRevolutionVotingPower.sol";
 // ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⠙⠋⠛⠙⠋⠛⠙⠋⠛⠙⠋⠃⠀⠀⠀⠀⠀⠀⠀⠀⠠⠿⠻⠟⠿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⠟⠿⠟⠿⠆⠀⠸⠿⠿⠟⠯⠀⠀⠀⠸⠿⠿⠿⠏⠀⠀⠀⠀⠀⠈⠉⠻⠻⡿⣿⢿⡿⡿⠿⠛⠁⠀⠀⠀⠀⠀⠀
 //                    allo.gitcoin.co
 
-contract QVRevolutionVotingPower is QVBaseStrategy {
+contract QVSnapshotRevolutionVotingPower is QVBaseStrategy {
     /// ======================
     /// ======= Storage ======
     /// ======================
 
     struct InitializeParamsGov {
         address votingPower;
-        uint256 timestamp;
+        uint256 snapshotBlock;
         InitializeParams params;
     }
 
     IRevolutionVotingPower public votingPower;
-    uint256 public timestamp;
+    uint256 public snapshotBlock;
 
     /// ===============================
     /// ======== Constructor ==========
@@ -56,7 +56,7 @@ contract QVRevolutionVotingPower is QVBaseStrategy {
     function __QVRevolutionVotingPower_init(uint256 _poolId, InitializeParamsGov memory _initializeParamsGov) internal {
         __QVBaseStrategy_init(_poolId, _initializeParamsGov.params);
         votingPower = IRevolutionVotingPower(_initializeParamsGov.votingPower);
-        timestamp = _initializeParamsGov.timestamp;
+        snapshotBlock = _initializeParamsGov.snapshotBlock;
 
         // sanity check if token implements getPastVotes
         // should revert if function is not available
@@ -71,7 +71,7 @@ contract QVRevolutionVotingPower is QVBaseStrategy {
     /// @param _allocator The allocator address
     /// @return true if the allocator is valid
     function _isValidAllocator(address _allocator) internal view override returns (bool) {
-        return votingPower.getPastVotes(_allocator, timestamp) > 0;
+        return votingPower.getPastVotes(_allocator, snapshotBlock) > 0;
     }
 
     /// ====================================
@@ -89,7 +89,7 @@ contract QVRevolutionVotingPower is QVBaseStrategy {
         Recipient storage recipient = recipients[recipientId];
         Allocator storage allocator = allocators[_sender];
 
-        uint256 votePower = votingPower.getPastVotes(_sender, timestamp);
+        uint256 votePower = votingPower.getPastVotes(_sender, block.number);
 
         if (!_hasVoiceCreditsLeft(voiceCreditsToAllocate + allocator.voiceCredits, votePower)) {
             revert INVALID();
